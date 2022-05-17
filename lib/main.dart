@@ -6,6 +6,7 @@ void main() => runApp(const LogoApp());
 class AnimatedLogo extends AnimatedWidget {
   const AnimatedLogo({Key? key, required Animation<double> animation})
       : super(key: key, listenable: animation);
+
   // 現在のvalueをanimationで保持する
 
   @override
@@ -41,7 +42,18 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
         AnimationController(duration: const Duration(seconds: 2), vsync: this);
 
     // ロゴの大きさの遷移範囲を設定
-    animation = Tween<double>(begin: 0, end: 300).animate(controller);
+    animation = Tween<double>(begin: 0, end: 300).animate(controller)
+      ..addStatusListener((status) {
+        // addStatusListenerで現在の状態を管理
+        // .completeでアニメーション完了を確認するとリバース
+        if(status == AnimationStatus.completed) {
+          controller.reverse();
+        }
+        // .dismissedでアニメーションが消えたことを確認すると再度実行
+        else if (status == AnimationStatus.dismissed) {
+          controller.forward();
+        }
+      });
     controller.forward(); // animation呼び出し
   }
 
