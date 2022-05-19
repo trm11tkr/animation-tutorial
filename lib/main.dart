@@ -10,7 +10,6 @@ class LogoApp extends StatefulWidget {
 }
 
 class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
-  // SingleTickerProviderStateMixin:
   late Animation<double> animation;
   late AnimationController controller;
 
@@ -21,7 +20,7 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
         AnimationController(duration: const Duration(seconds: 2), vsync: this);
 
     /// アニメーションの定義
-    animation = Tween<double>(begin: 0, end: 300).animate(controller)
+    animation = CurvedAnimation(parent: controller, curve: Curves.easeIn)
       ..addStatusListener((status) {
         // addStatusListenerで現在の状態を管理
         // .completeでアニメーション完了を確認するとリバース
@@ -37,9 +36,7 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return GrowTransition(animation: animation, child: const LogoWidget());
-  }
+  Widget build(BuildContext context) => AnimatedLogo(animation: animation);
 
   // メモリリークを防ぐため、animation.valueが更新されるとcontrollerを破棄
   @override
@@ -49,41 +46,27 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
   }
 }
 
-/// ロゴをレンダリングするWidget
-class LogoWidget extends StatelessWidget {
-  const LogoWidget({Key? key}) : super(key: key);
+class AnimatedLogo extends AnimatedWidget {
+  const AnimatedLogo({Key? key, required Animation<double> animation})
+      : super(key: key, listenable: animation);
 
-  // heightとweightを記述しないことで親Widgetを埋める
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      child: const FlutterLogo(),
-    );
-  }
-}
-
-/// 変遷をレンダリング
-class GrowTransition extends StatelessWidget {
-  const GrowTransition({required this.child, required this.animation, Key? key})
-      : super(key: key);
-
-  final Widget child;
-  final Animation<double> animation;
+  // Make the Tweens static because they don't change.
+  static final _opacityTween = Tween<double>(begin: 0.1, end: 1);
+  static final _sizeTween = Tween<double>(begin: 0, end: 300);
 
   @override
   Widget build(BuildContext context) {
+    final animation = listenable as Animation<double>;
     return Center(
-      child: AnimatedBuilder(
-        animation: animation,
-        builder: (context, child) {
-          return SizedBox(
-            height: animation.value,
-            width: animation.value,
-            child: child,
-          );
-        },
-        child: child,
+      // Opacityで不透明度を調節
+      child: Opacity(
+        opacity: _opacityTween.evaluate(animation), // 0.0(透明) ~ 1.0(不透明)
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 10),
+          height: _sizeTween.evaluate(animation),
+          width: _sizeTween.evaluate(animation),
+          child: const FlutterLogo(),
+        ),
       ),
     );
   }
