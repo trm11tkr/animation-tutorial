@@ -20,27 +20,25 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
     controller =
         AnimationController(duration: const Duration(seconds: 2), vsync: this);
 
-    // ロゴの大きさの遷移範囲を設定
+    /// アニメーションの定義
     animation = Tween<double>(begin: 0, end: 300).animate(controller)
-      ..addListener(() { // animation.addListener()と同じ
-        // setStateを呼び出し、強制的に再buildを呼び出す
-        setState(() {
-          // The state that has changed here is the animation object’s value.
-        });
+      ..addStatusListener((status) {
+        // addStatusListenerで現在の状態を管理
+        // .completeでアニメーション完了を確認するとリバース
+        if (status == AnimationStatus.completed) {
+          controller.reverse();
+        }
+        // .dismissedでアニメーションが消えたことを確認すると再度実行
+        else if (status == AnimationStatus.dismissed) {
+          controller.forward();
+        }
       });
-    controller.forward();
+    controller.forward(); // animation呼び出し
   }
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10),
-        height: animation.value,
-        width: animation.value,
-        child: const FlutterLogo(),
-      ),
-    );
+    return GrowTransition(animation: animation, child: const LogoWidget());
   }
 
   // メモリリークを防ぐため、animation.valueが更新されるとcontrollerを破棄
@@ -48,5 +46,45 @@ class _LogoAppState extends State<LogoApp> with SingleTickerProviderStateMixin {
   void dispose() {
     controller.dispose();
     super.dispose();
+  }
+}
+
+/// ロゴをレンダリングするWidget
+class LogoWidget extends StatelessWidget {
+  const LogoWidget({Key? key}) : super(key: key);
+
+  // heightとweightを記述しないことで親Widgetを埋める
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: const FlutterLogo(),
+    );
+  }
+}
+
+/// 変遷をレンダリング
+class GrowTransition extends StatelessWidget {
+  const GrowTransition({required this.child, required this.animation, Key? key})
+      : super(key: key);
+
+  final Widget child;
+  final Animation<double> animation;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) {
+          return SizedBox(
+            height: animation.value,
+            width: animation.value,
+            child: child,
+          );
+        },
+        child: child,
+      ),
+    );
   }
 }
