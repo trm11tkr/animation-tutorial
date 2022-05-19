@@ -2,12 +2,10 @@
 
 This is an exercise in implementing animations in Flutter.
 
-## AnimatedWidgetを使用したアニメーションの作成
-- 利用することで、ビュー(AnimatedLogo)とロジック(LogoApp)を分離することが可能になった
-- addListenerメソッドで現在の状態を管理できる<br>
-  AnimationStatus.completeやAnimationStatus.dismissedなどを条件に用いることで
-  無限ループが可能になった
+## 1つのオブジェクトに対して2つのアニメーション（サイズ/不透明度）の実装
+- Animation<double>の数値を利用して不透明度を調節した(Opacity)
+  
+今回は簡易的に実装したが、実践的には[FadeTransition](https://api.flutter.dev/flutter/widgets/FadeTransition-class.html)と[SizeTransition](https://api.flutter.dev/flutter/widgets/SizeTransition-class.html)を使う
 
-
-https://user-images.githubusercontent.com/89247188/168834758-209dd834-42bc-4185-9cdd-25d5b4b1a9b0.mp4
+https://user-images.githubusercontent.com/89247188/169196860-5297154e-4201-4afa-bfcd-948a168d7188.mp4
 
